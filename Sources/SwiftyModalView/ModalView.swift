@@ -92,9 +92,8 @@ public struct SwiftyModalView<Content: View>: View {
             Color.black
                 .opacity(dragPrecentage * backgroundDarkness)
                 .edgesIgnoringSafeArea(.all)
-                .animation(animation, value: dragPrecentage)
                 .onTapGesture {
-                    withAnimation(animation) {
+                    withAnimation(.easeOut) {
                         if availablePositions.contains(.bottom) {
                             position = .bottom
                         } else if availablePositions.contains(.middle) {
