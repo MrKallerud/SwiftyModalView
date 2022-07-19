@@ -140,15 +140,16 @@ public struct SwiftyModalView<Content: View>: View {
     }
 }
 
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 public enum SwiftyAnimation {
-    case quick, smooth, bounce, custom(animation: Animation)
+    case standard, quick, bounce, custom(animation: Animation)
     
     var animation: Animation {
         switch self {
+        case .standard:
+            return .interpolatingSpring(stiffness: 300, damping: 30, initialVelocity: 10)
         case .quick:
             return .interpolatingSpring(stiffness: 1000, damping: 35, initialVelocity: 40)
-        case .smooth:
-            return .interpolatingSpring(stiffness: 300, damping: 30, initialVelocity: 10)
         case .bounce:
             return .interpolatingSpring(stiffness: 300, damping: 20, initialVelocity: 20)
         case .custom(let animation):
