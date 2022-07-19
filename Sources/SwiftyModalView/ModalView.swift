@@ -135,12 +135,6 @@ public struct SwiftyModalView<Content: View>: View {
             }
         }
         .shadow(color: .black.opacity(1/3), radius: 20)
-//            .onAppear {
-//                zOffset = lowHeight
-//                prevOffset = lowHeight
-//            }
-//            .onDisappear { zOffset = UIScreen.height }
-        .opacity(position == .hidden ? 0 : 1)
     }
 }
 
