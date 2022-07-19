@@ -147,11 +147,11 @@ public enum SwiftyAnimation {
     public var animation: Animation {
         switch self {
         case .standard:
-            return .interpolatingSpring(stiffness: 300, damping: 30, initialVelocity: 10)
+            return .interpolatingSpring(stiffness: 300, damping: 30, initialVelocity: 15)
         case .quick:
-            return .interpolatingSpring(stiffness: 1000, damping: 35, initialVelocity: 40)
+            return .interpolatingSpring(stiffness: 1500, damping: 40, initialVelocity: 40)
         case .bounce:
-            return .interpolatingSpring(stiffness: 300, damping: 20, initialVelocity: 20)
+            return .interpolatingSpring(stiffness: 600, damping: 28, initialVelocity: 20)
         case .custom(let animation):
             return animation
         }
@@ -243,7 +243,7 @@ private struct RoundedCorner: Shape {
 
 struct SwiftyModalView_Previews: PreviewProvider {
     static var previews: some View {
-        SwiftyModalView(.constant(.middle), animation: .bounce) { position in
+        SwiftyModalView(.constant(.middle), animation: .standard) { position in
             Text("\(position)")
             //Color.red
         }
