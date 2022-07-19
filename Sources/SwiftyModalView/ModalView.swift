@@ -39,7 +39,7 @@ public struct SwiftyModalView<Content: View>: View {
         cornerRadius: Double = 20,
         handleStyle: HandleStyle = .medium,
         backgroundDarkness: Double = 0.5,
-        animation: SwiftyAnimation = .smooth,
+        animation: SwiftyAnimation = .standard,
         content: @escaping (_ position: String) -> Content
     ) {
         self._position = position
