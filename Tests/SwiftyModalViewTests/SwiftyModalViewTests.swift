@@ -1,5 +1,5 @@
 import XCTest
-@testable import SwiftyModal
+@testable import SwiftyModalView
 
 final class SwiftyModalTests: XCTestCase {
     func testExample() throws {

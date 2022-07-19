@@ -31,7 +31,7 @@ public struct SwiftyModalView<Content: View>: View {
     }
     
     public init(
-        _ position: Binding<ModalPosition> = .constant(.top),
+        _ position: Binding<ModalPosition>,
         availablePositions: Set<ModalPosition> = [.top, .middle, .bottom, .hidden],
         backgroundColor: UIColor = .secondarySystemBackground,
         cornerRadius: Double = 20,
@@ -92,6 +92,7 @@ public struct SwiftyModalView<Content: View>: View {
             Color.black
                 .opacity(dragPrecentage * backgroundDarkness)
                 .edgesIgnoringSafeArea(.all)
+                .animation(animation, value: dragPrecentage)
                 .onTapGesture {
                     withAnimation(animation) {
                         if availablePositions.contains(.bottom) {
@@ -133,7 +134,6 @@ public struct SwiftyModalView<Content: View>: View {
                 .edgesIgnoringSafeArea(.bottom)
             }
         }
-//            .frame(maxWidth: .infinity)
         .shadow(color: .black.opacity(1/3), radius: 20)
 //            .onAppear {
 //                zOffset = lowHeight
@@ -227,11 +227,11 @@ private struct RoundedCorner: Shape {
     }
 }
 
-//struct ModalView_Previews: PreviewProvider {
-//    static var previews: some View {
-//        ModalView { position in
-//            Text("\(position)")
-//            //Color.red
-//        }
-//    }
-//}
+struct SwiftyModalView_Previews: PreviewProvider {
+    static var previews: some View {
+        SwiftyModalView(.constant(.middle)) { position in
+            Text("\(position)")
+            //Color.red
+        }
+    }
+}
