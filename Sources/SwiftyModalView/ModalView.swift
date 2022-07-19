@@ -144,7 +144,7 @@ public struct SwiftyModalView<Content: View>: View {
 public enum SwiftyAnimation {
     case standard, quick, bounce, custom(animation: Animation)
     
-    var animation: Animation {
+    public var animation: Animation {
         switch self {
         case .standard:
             return .interpolatingSpring(stiffness: 300, damping: 30, initialVelocity: 10)
