@@ -74,7 +74,7 @@ public struct SwiftyModalView<Content: View>: View {
                     
                     var distances = [CGFloat: ModalPosition]()
                     for position in availablePositions {
-                        distances[abs((offset + value.predictedEndTranslation.height) - position.offset())] = position
+                        distances[abs((offset + (value.predictedEndTranslation.height / 2)) - position.offset())] = position
                     }
                     let nearestPosition = distances[distances.keys.sorted().first ?? 0] ?? .bottom
                     
