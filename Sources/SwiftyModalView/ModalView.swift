@@ -21,6 +21,8 @@ public struct SwiftyModalView<Content: View>: View {
     private let animation: Animation
     private let content: (_ position: String) -> Content
     
+    public let defaultAnimation: Animation = .interpolatingSpring(stiffness: 300.0, damping: 30.0, initialVelocity: 10.0)
+    
     // Technical values
     @State private var dragOffset: CGFloat = .zero
     @State private var prevOffset: CGFloat = .zero
@@ -37,7 +39,7 @@ public struct SwiftyModalView<Content: View>: View {
         cornerRadius: Double = 20,
         handleStyle: HandleStyle = .medium,
         backgroundDarkness: Double = 0.5,
-        animation: Animation = .interpolatingSpring(stiffness: 300.0, damping: 30.0, initialVelocity: 10.0),
+        animation: SwiftyAnimation = .smooth,
         content: @escaping (_ position: String) -> Content
     ) {
         self._position = position
@@ -46,7 +48,7 @@ public struct SwiftyModalView<Content: View>: View {
         self.cornerRadius = cornerRadius
         self.handleStyle = handleStyle
         self.backgroundDarkness = backgroundDarkness
-        self.animation = animation
+        self.animation = animation.animation
         self.content = content
     }
     
@@ -91,9 +93,10 @@ public struct SwiftyModalView<Content: View>: View {
         ZStack(alignment: .bottom) {
             Color.black
                 .opacity(dragPrecentage * backgroundDarkness)
+                .animation(.easeInOut(duration: 0.1), value: dragPrecentage)
                 .edgesIgnoringSafeArea(.all)
                 .onTapGesture {
-                    withAnimation(.easeOut) {
+                    withAnimation(animation) {
                         if availablePositions.contains(.bottom) {
                             position = .bottom
                         } else if availablePositions.contains(.middle) {
@@ -134,6 +137,23 @@ public struct SwiftyModalView<Content: View>: View {
             }
         }
         .shadow(color: .black.opacity(1/3), radius: 20)
+    }
+}
+
+public enum SwiftyAnimation {
+    case quick, smooth, bounce, custom(animation: Animation)
+    
+    var animation: Animation {
+        switch self {
+        case .quick:
+            return .interpolatingSpring(stiffness: 1000, damping: 35, initialVelocity: 40)
+        case .smooth:
+            return .interpolatingSpring(stiffness: 300, damping: 30, initialVelocity: 10)
+        case .bounce:
+            return .interpolatingSpring(stiffness: 300, damping: 20, initialVelocity: 20)
+        case .custom(let animation):
+            return animation
+        }
     }
 }
 
@@ -222,7 +242,7 @@ private struct RoundedCorner: Shape {
 
 struct SwiftyModalView_Previews: PreviewProvider {
     static var previews: some View {
-        SwiftyModalView(.constant(.middle)) { position in
+        SwiftyModalView(.constant(.middle), animation: .bounce) { position in
             Text("\(position)")
             //Color.red
         }
