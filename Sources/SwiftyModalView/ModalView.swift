@@ -7,19 +7,19 @@
 import SwiftUI
 
 @available(iOS 13.0, *)
-public struct ModalView<Content: View>: View {
+public struct SwiftyModalView<Content: View>: View {
     
 //    var material: Material = .ultraThinMaterial
     
     // Settings
-    @State var position: ModalPosition = .bottom
-    var availablePositions: [ModalPosition] = [.top, .middle, .bottom, .hidden]
-    var backgroundColor: UIColor = .secondarySystemBackground
-    var cornerRadius: Double = 20
-    var handleStyle: HandleStyle = .medium
-    var backgroundDarkness: Double = 1/2
-    var animation: Animation { .interpolatingSpring(stiffness: 300.0, damping: 30.0, initialVelocity: 10.0) }
-    let content: (_ position: String) -> Content
+    @Binding private var position: ModalPosition
+    private let availablePositions: Set<ModalPosition>
+    private let backgroundColor: UIColor
+    private let cornerRadius: Double
+    private let handleStyle: HandleStyle
+    private let backgroundDarkness: Double
+    private let animation: Animation
+    private let content: (_ position: String) -> Content
     
     // Technical values
     @State private var dragOffset: CGFloat = .zero
@@ -28,6 +28,26 @@ public struct ModalView<Content: View>: View {
     private var offset: CGFloat { position.offset() + dragOffset }
     private var dragPrecentage: Double {
         return max(0, min(1, (1 - ((offset - ModalPosition.top.offset()) / (ModalPosition.bottom.offset() - ModalPosition.top.offset())))))
+    }
+    
+    public init(
+        _ position: Binding<ModalPosition> = .constant(.top),
+        availablePositions: Set<ModalPosition> = [.top, .middle, .bottom, .hidden],
+        backgroundColor: UIColor = .secondarySystemBackground,
+        cornerRadius: Double = 20,
+        handleStyle: HandleStyle = .medium,
+        backgroundDarkness: Double = 0.5,
+        animation: Animation = .interpolatingSpring(stiffness: 300.0, damping: 30.0, initialVelocity: 10.0),
+        content: @escaping (_ position: String) -> Content
+    ) {
+        self._position = position
+        self.availablePositions = availablePositions
+        self.backgroundColor = backgroundColor
+        self.cornerRadius = cornerRadius
+        self.handleStyle = handleStyle
+        self.backgroundDarkness = backgroundDarkness
+        self.animation = animation
+        self.content = content
     }
     
     private var dragGesture: some Gesture {
@@ -124,7 +144,7 @@ public struct ModalView<Content: View>: View {
     }
 }
 
-enum ModalPosition: Comparable {
+public enum ModalPosition: Comparable {
     case top, middle, bottom, hidden
     
     func offset() -> CGFloat {
@@ -153,12 +173,12 @@ enum ModalPosition: Comparable {
         }
     }
     
-    static func <(lhs: ModalPosition, rhs: ModalPosition) -> Bool {
+    public static func <(lhs: ModalPosition, rhs: ModalPosition) -> Bool {
         return lhs.order < rhs.order
     }
 }
 
-enum HandleStyle {
+public enum HandleStyle {
     case none, small, medium, large
     
     func width() -> CGFloat {
@@ -207,11 +227,11 @@ private struct RoundedCorner: Shape {
     }
 }
 
-struct ModalView_Previews: PreviewProvider {
-    static var previews: some View {
-        ModalView { position in
-            Text("\(position)")
-            //Color.red
-        }
-    }
-}
+//struct ModalView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        ModalView { position in
+//            Text("\(position)")
+//            //Color.red
+//        }
+//    }
+//}
