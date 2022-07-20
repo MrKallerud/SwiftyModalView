@@ -17,6 +17,7 @@ public struct MaterialModalView<Content: View>: View {
     private let handleStyle: HandleStyle
     private let backgroundShadow: Double
     private let animation: Animation
+    private let resizable: Bool
     private let content: (_ position: Double) -> Content
     
     // Technical values
@@ -35,6 +36,7 @@ public struct MaterialModalView<Content: View>: View {
         handleStyle: HandleStyle = .medium,
         backgroundShadow: Double = 0,
         animation: SwiftyAnimation = .standard,
+        resizable: Bool = false,
         content: @escaping (_ position: Double) -> Content
     ) {
         self.availablePositions = availablePositions.set()
@@ -43,6 +45,7 @@ public struct MaterialModalView<Content: View>: View {
         self.handleStyle = handleStyle
         self.backgroundShadow = backgroundShadow
         self.animation = animation.animation
+        self.resizable = resizable
         self.content = content
     }
     
@@ -117,6 +120,11 @@ public struct MaterialModalView<Content: View>: View {
                     }
                     
                     content(dragPrecentage)
+                        //.padding(.bottom, position == .fill ? 0 : (UIApplication.topInset ?? 42))
+                        .padding(.bottom, resizable ?
+                                    offset :
+                                    (availablePositions.contains(.fill) ? 0 : (UIApplication.topInset ?? 42)))
+                        .frame(minHeight: .zero)
                     
                     Spacer(minLength: 0)
                 }
@@ -156,8 +164,14 @@ struct MaterialModalView_Previews: PreviewProvider {
             } placeholder: {
                 ProgressView()
             }
-            MaterialModalView(availablePositions: .all(false)) { position in
-                Text("\(position)").padding()
+            MaterialModalView(availablePositions: .standard) { position in
+                ZStack {
+                    Color.red
+                    Text("\(position)").padding()
+                }
+                .frame(height: 100)
+                .cornerRadius(20)
+                .padding()
             }
         }.preferredColorScheme(.dark)
     }

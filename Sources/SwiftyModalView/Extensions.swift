@@ -88,7 +88,7 @@ public enum ModalPosition: Comparable, Hashable {
     }
 }
 
-private extension UIApplication {
+internal extension UIApplication {
     static var topInset: CGFloat? {
         shared.windows.first{$0.isKeyWindow }?.safeAreaInsets.top
     }
