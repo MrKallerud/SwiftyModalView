@@ -5,6 +5,7 @@
 //
 
 import SwiftUI
+import SwiftUIVisualEffects
 
 /// A custom modal view with multiple height presets.
 @available(iOS 13.0, *)
@@ -12,7 +13,7 @@ public struct ModalView<Content: View>: View {
     // Settings
     @State private var position: ModalPosition = .hidden
     private let availablePositions: Set<ModalPosition>
-    private let color: UIColor
+    private let background: UIBlurEffect.Style
     private let cornerRadius: Double
     private let handleStyle: HandleStyle
     private let backgroundShadow: Double
@@ -32,17 +33,17 @@ public struct ModalView<Content: View>: View {
     
     public init(
         availablePositions: ModalPositionSet = .dismissable,
-        color: UIColor = .secondarySystemBackground,
+        background: UIBlurEffect.Style = .regular,
         cornerRadius: Double = 20,
         handleStyle: HandleStyle = .medium,
-        backgroundShadow: Double = 0,
+        backgroundShadow: Double = 0.3,
         animation: SwiftyAnimation = .standard,
         resizable: Bool = false,
         minSize: CGFloat = 0.3,
         content: @escaping (_ position: Double) -> Content
     ) {
         self.availablePositions = availablePositions.set()
-        self.color = color
+        self.background = background
         self.cornerRadius = cornerRadius
         self.handleStyle = handleStyle
         self.backgroundShadow = backgroundShadow
@@ -110,41 +111,44 @@ public struct ModalView<Content: View>: View {
                     }
                 }
             
-            VStack {
+            ZStack {
                 VStack(spacing: 0) {
-                    if handleStyle != .none {
-                        ZStack {
-                            Color.primary
-                                .opacity(0.5)
-                                .frame(width: handleStyle.width(), height: 6)
-                                .clipShape(Capsule())
-                                .padding([.top, .horizontal])
-                        }
-                    }
                     
                     content(dragPrecentage)
+                        .padding(.top, min(UIApplication.topInset ?? 42, max(22, (UIApplication.topInset ?? 42) - offset)))
+                        .padding(.bottom, UIApplication.bottomInset ?? 42)
                         .padding(.bottom, resizable ?
-                                 max(.zero, min(offset, UIScreen.height * (1 - minSize))) :
-                                    (availablePositions.contains(.fill) ? 0 : (UIApplication.topInset ?? 42)))
+                                 max(.zero, min(offset, UIScreen.height * (1 - minSize))) : .zero)
                         .frame(minHeight: .zero)
                     
                     Spacer(minLength: .zero)
                 }
-                .frame(maxWidth: UIScreen.width, maxHeight: .infinity)
-                .background(
-                    Color(color)
-                        .onTapGesture {
-                            withAnimation(animation) {
-                                position = availablePositions.getHighest()
-                            }
-                        }
-                )
-                .cornerRadius(min(offset, cornerRadius),
-                              corners: [.topLeft, .topRight])
-                .offset(y: max(.zero, offset))
-                .gesture(dragGesture)
-                .edgesIgnoringSafeArea(.vertical)
+                
+                if handleStyle != .none {
+                    VStack {
+                        Color.primary
+                            .opacity(0.5)
+                            .frame(width: handleStyle.width(), height: 6)
+                            .clipShape(Capsule())
+                            .padding()
+                        Spacer()
+                    }
+                }
             }
+            .frame(maxWidth: UIScreen.width, maxHeight: .infinity)
+            .background(
+                BlurEffect()
+                    .onTapGesture {
+                        withAnimation(animation) {
+                            position = availablePositions.getHighest()
+                        }
+                    }
+            )
+            .cornerRadius(min(offset, cornerRadius),
+                          corners: [.topLeft, .topRight])
+            .offset(y: max(.zero, offset))
+            .gesture(dragGesture)
+            .edgesIgnoringSafeArea(.vertical)
         }
         .shadow(color: .black.opacity(1/3), radius: 20)
         .onAppear {
@@ -152,19 +156,30 @@ public struct ModalView<Content: View>: View {
                 position = availablePositions.getHighest()
             }
         }
+        .blurEffectStyle(background)
     }
 }
 
-@available(iOS 13.0, *)
+@available(iOS 15.0, *)
 struct ModalView_Previews: PreviewProvider {
     static var previews: some View {
-        ModalView(availablePositions: .standard, resizable: true) { position in
-            ZStack {
-                Color.red
-                Text("\(position)").padding()
+        ZStack {
+            AsyncImage(url: URL(string: "https://images.unsplash.com/photo-1593558628703-535b2556320b?auto=format&fit=crop&h=2000&q=90")) { image in
+                image.resizable().scaledToFill()
+                    .ignoresSafeArea()
+            } placeholder: {
+                ProgressView()
             }
-            .cornerRadius(20)
-            .padding()
-        }
+            ModalView(availablePositions: .custom([.bottom, .middle, .top, .fill]), resizable: true) { position in
+                ZStack {
+                    Button {
+                        //
+                    } label: {
+                        Text("\(position)").padding()
+                    }
+                }
+                //.background(.thinMaterial)
+            }
+        }.preferredColorScheme(.dark)
     }
 }

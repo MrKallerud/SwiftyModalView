@@ -6,9 +6,9 @@
 //
 
 import SwiftUI
+import SwiftUIVisualEffects
 
 /// Various custom animations that fits the SwiftyModelView.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 public enum SwiftyAnimation {
     /// The default animation that is relatively slow and with a very small amount of bounce.
     case standard
@@ -77,7 +77,7 @@ public enum ModalPosition: Comparable, Hashable {
         case .fill:
             return .zero
         case .top:
-            return UIApplication.topInset ?? 42
+            return (UIApplication.topInset ?? 42) + 16
         case .middle:
             return UIScreen.height / 2
         case .bottom:
@@ -122,7 +122,7 @@ public enum ModalPositionSet {
     case low(_ dismissable: Bool = true)
     
     /// A set of positions all over the screen, allowing the modal to be placed nearly anywhere.
-    case all(_ dismissable: Bool = false)
+    case all(_ dismissable: Bool = true)
     
     /// Make your own custom set of positions
     case custom(_ positions: Set<ModalPosition>)
