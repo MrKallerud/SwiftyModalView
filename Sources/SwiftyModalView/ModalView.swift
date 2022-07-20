@@ -6,11 +6,9 @@
 
 import SwiftUI
 
+/// A custom modal view with multiple height presets.
 @available(iOS 13.0, *)
 public struct SwiftyModalView<Content: View>: View {
-    
-//    var material: Material = .ultraThinMaterial
-    
     // Settings
     @Binding private var position: ModalPosition
     private let availablePositions: Set<ModalPosition>
@@ -19,7 +17,7 @@ public struct SwiftyModalView<Content: View>: View {
     private let handleStyle: HandleStyle
     private let backgroundDarkness: Double
     private let animation: Animation
-    private let content: (_ position: String) -> Content
+    private let content: (_ position: Double) -> Content
     
     public let defaultAnimation: Animation = .interpolatingSpring(stiffness: 300.0, damping: 30.0, initialVelocity: 10.0)
     
@@ -40,7 +38,7 @@ public struct SwiftyModalView<Content: View>: View {
         handleStyle: HandleStyle = .medium,
         backgroundDarkness: Double = 0.5,
         animation: SwiftyAnimation = .standard,
-        content: @escaping (_ position: String) -> Content
+        content: @escaping (_ position: Double) -> Content
     ) {
         self._position = position
         self.availablePositions = availablePositions
@@ -113,11 +111,11 @@ public struct SwiftyModalView<Content: View>: View {
                                 .opacity(0.5)
                                 .frame(width: handleStyle.width(), height: 6)
                                 .clipShape(Capsule())
-                                .padding()
+                                .padding([.top, .horizontal])
                         }
                     }
                     
-                    content(String(dragPrecentage))
+                    content(dragPrecentage)
                     
                     Spacer(minLength: 0)
                 }
@@ -140,112 +138,10 @@ public struct SwiftyModalView<Content: View>: View {
     }
 }
 
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-public enum SwiftyAnimation {
-    case standard, quick, bounce, custom(animation: Animation)
-    
-    public var animation: Animation {
-        switch self {
-        case .standard:
-            return .interpolatingSpring(stiffness: 300, damping: 30, initialVelocity: 15)
-        case .quick:
-            return .interpolatingSpring(stiffness: 1500, damping: 40, initialVelocity: 40)
-        case .bounce:
-            return .interpolatingSpring(stiffness: 600, damping: 28, initialVelocity: 20)
-        case .custom(let animation):
-            return animation
-        }
-    }
-}
-
-public enum ModalPosition: Comparable {
-    case top, middle, bottom, hidden
-    
-    func offset() -> CGFloat {
-        switch self {
-        case .top:
-            return .zero
-        case .middle:
-            return UIScreen.height / 2
-        case .bottom:
-            return UIScreen.height - 128
-        case .hidden:
-            return UIScreen.height
-        }
-    }
-    
-    private var order: Int {
-        switch self {
-        case .hidden:
-            return 0
-        case .top:
-            return 1
-        case .middle:
-            return 2
-        case .bottom:
-            return 3
-        }
-    }
-    
-    public static func <(lhs: ModalPosition, rhs: ModalPosition) -> Bool {
-        return lhs.order < rhs.order
-    }
-}
-
-public enum HandleStyle {
-    case none, small, medium, large
-    
-    func width() -> CGFloat {
-        switch self {
-        case .none:
-            return .zero
-        case .small:
-            return 24
-        case .medium:
-            return 48
-        case .large:
-            return 64
-        }
-    }
-}
-
-private extension Collection where Element == ModalPosition {
-    func getLowest() -> Element {
-        self.sorted().last ?? .bottom
-    }
-    
-    func getHighest() -> Element {
-        self.sorted().first ?? .top
-    }
-}
-
-private extension UIScreen {
-    static let width = UIScreen.main.bounds.size.width
-    static let height = UIScreen.main.bounds.size.height
-    static let size = UIScreen.main.bounds.size
-}
-
-private extension View {
-    func cornerRadius(_ radius: CGFloat, corners: UIRectCorner) -> some View {
-        clipShape( RoundedCorner(radius: radius, corners: corners) )
-    }
-}
-
-private struct RoundedCorner: Shape {
-    var radius: CGFloat = .infinity
-    var corners: UIRectCorner = .allCorners
-    
-    func path(in rect: CGRect) -> Path {
-        let path = UIBezierPath(roundedRect: rect, byRoundingCorners: corners, cornerRadii: CGSize(width: radius, height: radius))
-        return Path(path.cgPath)
-    }
-}
-
 struct SwiftyModalView_Previews: PreviewProvider {
     static var previews: some View {
-        SwiftyModalView(.constant(.middle), animation: .standard) { position in
-            Text("\(position)")
-            //Color.red
+        SwiftyModalView(.constant(.top)) { position in
+            Text("\(position)").padding()
         }
     }
 }
