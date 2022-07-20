@@ -19,6 +19,10 @@ public enum SwiftyAnimation {
     /// A very bouncy animation that fits best without the top position.
     case bounce
     
+    /// Simple ease-out bezier curve without bounce.
+    /// Preview: https://cubic-bezier.com/#0,0,0,1
+    case simple
+    
     /// Insert your own custom animations.
     case custom(_ animation: Animation)
     
@@ -29,14 +33,16 @@ public enum SwiftyAnimation {
         case .standard:
             return .interpolatingSpring(stiffness: 300, damping: 30, initialVelocity: 15)
             
-            /// Returns the animation: ".interpolatingSpring(stiffness: 1500, damping: 40, initialVelocity: 40)"
+            /// Returns the animation: ".interpolatingSpring(stiffness: 1000, damping: 55, initialVelocity: 30)"
         case .quick:
-            return .interpolatingSpring(stiffness: 1000, damping: 50, initialVelocity: 30)
+            return .interpolatingSpring(stiffness: 1000, damping: 55, initialVelocity: 30)
             
-            /// Returns the animation: ".interpolatingSpring(stiffness: 600, damping: 28, initialVelocity: 20)"
+            /// Returns the animation: ".interpolatingSpring(stiffness: 500, damping: 28, initialVelocity: 5)"
         case .bounce:
-            return .interpolatingSpring(stiffness: 600, damping: 28, initialVelocity: 20)
+            return .interpolatingSpring(stiffness: 500, damping: 28, initialVelocity: 5)
             
+        case .simple:
+            return .timingCurve(0, 0, 0, 1, duration: 0.3)
             /// Returns the animation passed in the argument.
         case .custom(let animation):
             return animation
@@ -157,7 +163,10 @@ public enum ModalPositionSet {
 
 /// Various styles for the handle at the top of the modal.
 public enum HandleStyle {
-    case none, small, medium, large
+    case none
+    case small
+    case medium
+    case large
     
     func width() -> CGFloat {
         switch self {

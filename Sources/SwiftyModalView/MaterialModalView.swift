@@ -18,6 +18,7 @@ public struct MaterialModalView<Content: View>: View {
     private let backgroundShadow: Double
     private let animation: Animation
     private let resizable: Bool
+    private let minSize: CGFloat
     private let content: (_ position: Double) -> Content
     
     // Technical values
@@ -37,6 +38,7 @@ public struct MaterialModalView<Content: View>: View {
         backgroundShadow: Double = 0,
         animation: SwiftyAnimation = .standard,
         resizable: Bool = false,
+        minSize: CGFloat = 0.3,
         content: @escaping (_ position: Double) -> Content
     ) {
         self.availablePositions = availablePositions.set()
@@ -46,6 +48,7 @@ public struct MaterialModalView<Content: View>: View {
         self.backgroundShadow = backgroundShadow
         self.animation = animation.animation
         self.resizable = resizable
+        self.minSize = minSize
         self.content = content
     }
     
@@ -66,7 +69,7 @@ public struct MaterialModalView<Content: View>: View {
             }
             .onEnded { value in
                 withAnimation(animation) {
-                    let sensitivity = max(1, availablePositions.count / 7)
+                    let sensitivity = max(1, availablePositions.count / 6)
                     prevDragTranslation = .zero
                     dragOffset = .zero
                     
@@ -120,9 +123,8 @@ public struct MaterialModalView<Content: View>: View {
                     }
                     
                     content(dragPrecentage)
-                        //.padding(.bottom, position == .fill ? 0 : (UIApplication.topInset ?? 42))
                         .padding(.bottom, resizable ?
-                                    offset :
+                                 min(offset, UIScreen.height * (1 - minSize)) :
                                     (availablePositions.contains(.fill) ? 0 : (UIApplication.topInset ?? 42)))
                         .frame(minHeight: .zero)
                     
@@ -164,12 +166,12 @@ struct MaterialModalView_Previews: PreviewProvider {
             } placeholder: {
                 ProgressView()
             }
-            MaterialModalView(availablePositions: .standard) { position in
+            MaterialModalView(availablePositions: .standard, material: .ultraThinMaterial, animation: .simple, resizable: true) { position in
                 ZStack {
-                    Color.red
                     Text("\(position)").padding()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
-                .frame(height: 100)
+                .background(.thinMaterial)
                 .cornerRadius(20)
                 .padding()
             }
