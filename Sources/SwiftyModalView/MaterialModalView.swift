@@ -124,11 +124,11 @@ public struct MaterialModalView<Content: View>: View {
                     
                     content(dragPrecentage)
                         .padding(.bottom, resizable ?
-                                 min(offset, UIScreen.height * (1 - minSize)) :
+                                 max(.zero, min(offset, UIScreen.height * (1 - minSize))) :
                                     (availablePositions.contains(.fill) ? 0 : (UIApplication.topInset ?? 42)))
                         .frame(minHeight: .zero)
                     
-                    Spacer(minLength: 0)
+                    Spacer(minLength: .zero)
                 }
                 .frame(maxWidth: UIScreen.width, maxHeight: .infinity)
                 .background(
@@ -166,15 +166,22 @@ struct MaterialModalView_Previews: PreviewProvider {
             } placeholder: {
                 ProgressView()
             }
-            MaterialModalView(availablePositions: .standard, material: .ultraThinMaterial, animation: .simple, resizable: true) { position in
+            MaterialModalView(backgroundShadow: 0.5, resizable: true) { position in
                 ZStack {
-                    Text("\(position)").padding()
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    RoundedRectangle(cornerRadius: 36)
+                        .strokeBorder(style: StrokeStyle(lineWidth: 4))
+                        .foregroundColor(.primary)
+                        .padding()
+                    VStack {
+                        Text("SwiftyModalView")
+                            .font(.largeTitle)
+                        Text("MATERIAL")
+                            .font(.title3)
+                            .fontWeight(.bold)
+                    }
                 }
-                .background(.thinMaterial)
-                .cornerRadius(20)
-                .padding()
+                .opacity(0.5)
             }
-        }.preferredColorScheme(.dark)
+        }
     }
 }

@@ -124,11 +124,11 @@ public struct ModalView<Content: View>: View {
                     
                     content(dragPrecentage)
                         .padding(.bottom, resizable ?
-                                 min(offset, UIScreen.height * (1 - minSize)) :
+                                 max(.zero, min(offset, UIScreen.height * (1 - minSize))) :
                                     (availablePositions.contains(.fill) ? 0 : (UIApplication.topInset ?? 42)))
                         .frame(minHeight: .zero)
                     
-                    Spacer(minLength: 0)
+                    Spacer(minLength: .zero)
                 }
                 .frame(maxWidth: UIScreen.width, maxHeight: .infinity)
                 .background(

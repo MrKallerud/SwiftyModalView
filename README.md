@@ -1,3 +1,3 @@
-# SwiftyModal
+# SwiftyModalView
 
-A description of this package.
+A simple highly adjustable half-modal view for SwiftUI.
