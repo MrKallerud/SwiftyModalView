@@ -25,7 +25,6 @@ public enum SwiftyAnimation {
     /// Returns the animation object.
     public var animation: Animation {
         switch self {
-            
             /// Returns the animation: ".interpolatingSpring(stiffness: 300, damping: 30, initialVelocity: 15)"
         case .standard:
             return .interpolatingSpring(stiffness: 300, damping: 30, initialVelocity: 15)
@@ -46,7 +45,7 @@ public enum SwiftyAnimation {
 }
 
 /// Various positions for the modal.
-public enum ModalPosition: Comparable {
+public enum ModalPosition: Comparable, Hashable {
     /// Positions the modal at the top of the safe area.
     case top
     
@@ -60,7 +59,7 @@ public enum ModalPosition: Comparable {
     case hidden
     
     /// Positions the modal at the position of the argument.
-    /// Pass a value between 0.0 and 1.0.
+    /// Pass a value between 0 and 1, 0 is hidden and 1 is the top.
     case custom(position: CGFloat)
     
     /// Returns the height value for the position.
@@ -75,12 +74,86 @@ public enum ModalPosition: Comparable {
         case .hidden:
             return UIScreen.height
         case .custom(let position):
-            return UIScreen.height * position
+            return UIScreen.height * (1 - position)
         }
+    }
+    
+    /// Returns all standard modal positions.
+    public var standard: Set<ModalPosition> {
+        [.hidden, .bottom, .middle, .top]
+    }
+    
+    /// Returns a set of all possible positions, allowing the modal to be placed nearly anywhere on screen.
+    public var all: Set<ModalPosition> {
+        [.hidden,
+         .bottom,
+         .custom(position: 0.2),
+         .custom(position: 0.3),
+         .custom(position: 0.4),
+         .middle,
+         .custom(position: 0.6),
+         .custom(position: 0.7),
+         .custom(position: 0.8),
+         .custom(position: 0.9),
+         .top,
+        ]
     }
     
     public static func <(lhs: ModalPosition, rhs: ModalPosition) -> Bool {
         return lhs.offset() < rhs.offset()
+    }
+}
+
+/// Various sets of modal positons.
+public enum ModalPositionSet {
+    /// The standard set of positions:
+    /// .bottom, .middle, .top
+    case standard
+    
+    /// A dismissable version of the standard set:
+    /// .hidden, .bottom, .middle, .top
+    case dismissable
+    
+    /// Just the bottom and top positions:
+    case simple(_ dismissable: Bool = true)
+    
+    /// Just the bottom and middle positions:
+    case low(_ dismissable: Bool = true)
+    
+    /// A set of positions all over the screen, allowing the modal to be placed nearly anywhere.
+    case all(_ dismissable: Bool = false)
+    
+    /// Make your own custom set of positions
+    case custom(_ positions: Set<ModalPosition>)
+    
+    func set() -> Set<ModalPosition> {
+        switch self {
+        case .standard:
+            return [.bottom, .middle, .top]
+        case .dismissable:
+            return [.hidden, .bottom, .middle, .top]
+        case .simple(let dismissable):
+            return dismissable ? [.hidden, .bottom, .top] : [.bottom, .top]
+        case .low(let dismissable):
+            return dismissable ? [.hidden, .bottom, .middle] : [.bottom, .middle]
+        case .all(let dismissable):
+            var all: Set<ModalPosition> = [
+                .bottom,
+                .custom(position: 0.2),
+                .custom(position: 0.3),
+                .custom(position: 0.4),
+                .middle,
+                .custom(position: 0.6),
+                .custom(position: 0.7),
+                .custom(position: 0.8),
+                .custom(position: 0.9),
+                .top
+            ]
+            if dismissable { all.insert(.hidden) }
+            return all
+        case .custom(let positions):
+            return positions
+        }
     }
 }
 
@@ -104,11 +177,20 @@ public enum HandleStyle {
 
 internal extension Collection where Element == ModalPosition {
     func getLowest() -> Element {
-        self.sorted().last ?? .bottom
+        let sorted = self.sorted()
+        if sorted.last != .hidden {
+            return sorted.last ?? .bottom
+        }
+        return sorted.dropLast().last ?? .bottom
     }
     
     func getHighest() -> Element {
-        self.sorted().first ?? .top
+        self.sorted().first ?? .bottom
+    }
+    
+    func isSinglePosition() -> Bool {
+        (!self.contains(.hidden) && self.count <= 1) ||
+        (self.contains(.hidden) && self.count <= 2)
     }
 }
 

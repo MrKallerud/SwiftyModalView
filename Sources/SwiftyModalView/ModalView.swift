@@ -10,7 +10,7 @@ import SwiftUI
 @available(iOS 13.0, *)
 public struct SwiftyModalView<Content: View>: View {
     // Settings
-    @Binding private var position: ModalPosition
+    @State private var position: ModalPosition = .hidden
     private let availablePositions: Set<ModalPosition>
     private let backgroundColor: UIColor
     private let cornerRadius: Double
@@ -18,21 +18,19 @@ public struct SwiftyModalView<Content: View>: View {
     private let backgroundDarkness: Double
     private let animation: Animation
     private let content: (_ position: Double) -> Content
-    
-    public let defaultAnimation: Animation = .interpolatingSpring(stiffness: 300.0, damping: 30.0, initialVelocity: 10.0)
-    
+        
     // Technical values
     @State private var dragOffset: CGFloat = .zero
     @State private var prevOffset: CGFloat = .zero
     @State private var prevDragTranslation: CGSize = .zero
     private var offset: CGFloat { position.offset() + dragOffset }
     private var dragPrecentage: Double {
-        return max(0, min(1, (1 - ((offset - ModalPosition.top.offset()) / (ModalPosition.bottom.offset() - ModalPosition.top.offset())))))
+        max(0, min(1, (1 - ((offset - availablePositions.getHighest().offset()) / (availablePositions.getLowest().offset() - availablePositions.getHighest().offset())))))
     }
     
     public init(
-        _ position: Binding<ModalPosition>,
-        availablePositions: Set<ModalPosition> = [.top, .middle, .bottom, .hidden],
+        position: ModalPosition? = nil,
+        availablePositions: ModalPositionSet = .dismissable,
         backgroundColor: UIColor = .secondarySystemBackground,
         cornerRadius: Double = 20,
         handleStyle: HandleStyle = .medium,
@@ -40,8 +38,8 @@ public struct SwiftyModalView<Content: View>: View {
         animation: SwiftyAnimation = .standard,
         content: @escaping (_ position: Double) -> Content
     ) {
-        self._position = position
-        self.availablePositions = availablePositions
+        self.position = position ?? availablePositions.set().getHighest()
+        self.availablePositions = availablePositions.set()
         self.backgroundColor = backgroundColor
         self.cornerRadius = cornerRadius
         self.handleStyle = handleStyle
@@ -56,7 +54,7 @@ public struct SwiftyModalView<Content: View>: View {
                 withAnimation(animation) {
                     let dragAmount = value.translation.height - prevDragTranslation.height
                     
-                    if offset > availablePositions.getLowest().offset() || offset > availablePositions.getHighest().offset() {
+                    if offset > availablePositions.getLowest().offset() || offset < availablePositions.getHighest().offset() {
                         dragOffset += dragAmount / 5
                     } else {
                         dragOffset += dragAmount
@@ -72,7 +70,7 @@ public struct SwiftyModalView<Content: View>: View {
                     
                     var distances = [CGFloat: ModalPosition]()
                     for position in availablePositions {
-                        distances[abs((offset + (value.predictedEndTranslation.height / 2)) - position.offset())] = position
+                        distances[abs((offset + (value.predictedEndTranslation.height * 0.9)) - position.offset())] = position
                     }
                     let nearestPosition = distances[distances.keys.sorted().first ?? 0] ?? .bottom
                     
@@ -90,7 +88,11 @@ public struct SwiftyModalView<Content: View>: View {
     public var body: some View {
         ZStack(alignment: .bottom) {
             Color.black
-                .opacity(dragPrecentage * backgroundDarkness)
+                .opacity(position == .hidden ?
+                            0 : // If hidden
+                            (availablePositions.isSinglePosition() ? // If not hidden
+                                backgroundDarkness : // If single position
+                                (dragPrecentage * backgroundDarkness))) // If multiple positions
                 .animation(.easeInOut(duration: 0.1), value: dragPrecentage)
                 .edgesIgnoringSafeArea(.all)
                 .onTapGesture {
@@ -140,7 +142,7 @@ public struct SwiftyModalView<Content: View>: View {
 
 struct SwiftyModalView_Previews: PreviewProvider {
     static var previews: some View {
-        SwiftyModalView(.constant(.top)) { position in
+        SwiftyModalView(availablePositions: .standard) { position in
             Text("\(position)").padding()
         }
     }
