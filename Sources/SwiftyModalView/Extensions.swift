@@ -20,7 +20,7 @@ public enum SwiftyAnimation {
     case bounce
     
     /// Insert your own custom animations.
-    case custom(animation: Animation)
+    case custom(_ animation: Animation)
     
     /// Returns the animation object.
     public var animation: Animation {
@@ -46,6 +46,9 @@ public enum SwiftyAnimation {
 
 /// Various positions for the modal.
 public enum ModalPosition: Comparable, Hashable {
+    /// Fills the entire view
+    case fill
+    
     /// Positions the modal at the top of the safe area.
     case top
     
@@ -60,17 +63,19 @@ public enum ModalPosition: Comparable, Hashable {
     
     /// Positions the modal at the position of the argument.
     /// Pass a value between 0 and 1, 0 is hidden and 1 is the top.
-    case custom(position: CGFloat)
+    case custom(_ position: CGFloat)
     
     /// Returns the height value for the position.
     func offset() -> CGFloat {
         switch self {
-        case .top:
+        case .fill:
             return .zero
+        case .top:
+            return UIApplication.topInset ?? 42
         case .middle:
             return UIScreen.height / 2
         case .bottom:
-            return UIScreen.height - 128
+            return UIScreen.height - (UIApplication.bottomInset ?? 32) - 42
         case .hidden:
             return UIScreen.height
         case .custom(let position):
@@ -78,29 +83,17 @@ public enum ModalPosition: Comparable, Hashable {
         }
     }
     
-    /// Returns all standard modal positions.
-    public var standard: Set<ModalPosition> {
-        [.hidden, .bottom, .middle, .top]
-    }
-    
-    /// Returns a set of all possible positions, allowing the modal to be placed nearly anywhere on screen.
-    public var all: Set<ModalPosition> {
-        [.hidden,
-         .bottom,
-         .custom(position: 0.2),
-         .custom(position: 0.3),
-         .custom(position: 0.4),
-         .middle,
-         .custom(position: 0.6),
-         .custom(position: 0.7),
-         .custom(position: 0.8),
-         .custom(position: 0.9),
-         .top,
-        ]
-    }
-    
     public static func <(lhs: ModalPosition, rhs: ModalPosition) -> Bool {
         return lhs.offset() < rhs.offset()
+    }
+}
+
+private extension UIApplication {
+    static var topInset: CGFloat? {
+        shared.windows.first{$0.isKeyWindow }?.safeAreaInsets.top
+    }
+    static var bottomInset: CGFloat? {
+        shared.windows.first{$0.isKeyWindow }?.safeAreaInsets.bottom
     }
 }
 
@@ -113,6 +106,8 @@ public enum ModalPositionSet {
     /// A dismissable version of the standard set:
     /// .hidden, .bottom, .middle, .top
     case dismissable
+    
+    case fill(_ dismissable: Bool = true)
     
     /// Just the bottom and top positions:
     case simple(_ dismissable: Bool = true)
@@ -132,6 +127,8 @@ public enum ModalPositionSet {
             return [.bottom, .middle, .top]
         case .dismissable:
             return [.hidden, .bottom, .middle, .top]
+        case .fill(let dismissable):
+            return dismissable ? [.hidden, .bottom, .fill] : [.bottom, .fill]
         case .simple(let dismissable):
             return dismissable ? [.hidden, .bottom, .top] : [.bottom, .top]
         case .low(let dismissable):
@@ -139,15 +136,16 @@ public enum ModalPositionSet {
         case .all(let dismissable):
             var all: Set<ModalPosition> = [
                 .bottom,
-                .custom(position: 0.2),
-                .custom(position: 0.3),
-                .custom(position: 0.4),
+                .custom(0.2),
+                .custom(0.3),
+                .custom(0.4),
                 .middle,
-                .custom(position: 0.6),
-                .custom(position: 0.7),
-                .custom(position: 0.8),
-                .custom(position: 0.9),
-                .top
+                .custom(0.6),
+                .custom(0.7),
+                .custom(0.8),
+                .custom(0.9),
+                .top,
+                .fill
             ]
             if dismissable { all.insert(.hidden) }
             return all
@@ -194,7 +192,7 @@ internal extension Collection where Element == ModalPosition {
     }
 }
 
-private extension UIScreen {
+internal extension UIScreen {
     static let width = UIScreen.main.bounds.size.width
     static let height = UIScreen.main.bounds.size.height
     static let size = UIScreen.main.bounds.size

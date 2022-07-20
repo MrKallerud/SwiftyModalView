@@ -15,7 +15,7 @@ public struct MaterialModalView<Content: View>: View {
     private let material: Material
     private let cornerRadius: Double
     private let handleStyle: HandleStyle
-    private let backgroundDarkness: Double
+    private let backgroundShadow: Double
     private let animation: Animation
     private let content: (_ position: Double) -> Content
     
@@ -29,12 +29,11 @@ public struct MaterialModalView<Content: View>: View {
     }
     
     public init(
-        position: ModalPosition? = nil,
         availablePositions: ModalPositionSet = .dismissable,
-        material: Material = .ultraThinMaterial,
+        material: Material = .regular,
         cornerRadius: Double = 20,
         handleStyle: HandleStyle = .medium,
-        backgroundDarkness: Double = 0.5,
+        backgroundShadow: Double = 0,
         animation: SwiftyAnimation = .standard,
         content: @escaping (_ position: Double) -> Content
     ) {
@@ -42,10 +41,9 @@ public struct MaterialModalView<Content: View>: View {
         self.material = material
         self.cornerRadius = cornerRadius
         self.handleStyle = handleStyle
-        self.backgroundDarkness = backgroundDarkness
+        self.backgroundShadow = backgroundShadow
         self.animation = animation.animation
         self.content = content
-        self.position = position ?? availablePositions.set().getHighest()
     }
     
     private var dragGesture: some Gesture {
@@ -65,12 +63,13 @@ public struct MaterialModalView<Content: View>: View {
             }
             .onEnded { value in
                 withAnimation(animation) {
+                    let sensitivity = max(1, availablePositions.count / 7)
                     prevDragTranslation = .zero
                     dragOffset = .zero
                     
                     var distances = [CGFloat: ModalPosition]()
                     for position in availablePositions {
-                        distances[abs((offset + (value.predictedEndTranslation.height * 0.9)) - position.offset())] = position
+                        distances[abs((offset + (value.predictedEndTranslation.height * CGFloat(sensitivity))) - position.offset())] = position
                     }
                     let nearestPosition = distances[distances.keys.sorted().first ?? 0] ?? .bottom
                     
@@ -91,8 +90,8 @@ public struct MaterialModalView<Content: View>: View {
                 .opacity(position == .hidden ?
                          0 : // If hidden
                          (availablePositions.isSinglePosition() ? // If not hidden
-                          backgroundDarkness : // If single position
-                          (dragPrecentage * backgroundDarkness))) // If multiple positions
+                          backgroundShadow : // If single position
+                          (dragPrecentage * backgroundShadow))) // If multiple positions
                 .animation(.easeInOut(duration: 0.1), value: dragPrecentage)
                 .edgesIgnoringSafeArea(.all)
                 .onTapGesture {
@@ -121,7 +120,7 @@ public struct MaterialModalView<Content: View>: View {
                     
                     Spacer(minLength: 0)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .frame(maxWidth: UIScreen.width, maxHeight: .infinity)
                 .background(
                     Color.clear
                         .background(material)
@@ -131,21 +130,35 @@ public struct MaterialModalView<Content: View>: View {
                             }
                         }
                 )
-                .cornerRadius(cornerRadius, corners: [.topLeft, .topRight])
+                .cornerRadius(min(offset, cornerRadius),
+                              corners: [.topLeft, .topRight])
                 .offset(y: max(.zero, offset))
                 .gesture(dragGesture)
-                .edgesIgnoringSafeArea(.bottom)
+                .edgesIgnoringSafeArea(.vertical)
             }
         }
         .shadow(color: .black.opacity(1/3), radius: 20)
+        .onAppear {
+            withAnimation(animation) {
+                position = availablePositions.getHighest()
+            }
+        }
     }
 }
 
 @available(iOS 15.0, *)
 struct MaterialModalView_Previews: PreviewProvider {
     static var previews: some View {
-        MaterialModalView(availablePositions: .standard) { position in
-            Text("\(position)").padding()
-        }
+        ZStack {
+            AsyncImage(url: URL(string: "https://images.unsplash.com/photo-1593558628703-535b2556320b?auto=format&fit=crop&h=2000&q=90")) { image in
+                image.resizable().scaledToFill()
+                    .ignoresSafeArea()
+            } placeholder: {
+                ProgressView()
+            }
+            MaterialModalView(availablePositions: .all(false)) { position in
+                Text("\(position)").padding()
+            }
+        }.preferredColorScheme(.dark)
     }
 }

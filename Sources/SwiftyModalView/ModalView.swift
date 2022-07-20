@@ -12,13 +12,13 @@ public struct ModalView<Content: View>: View {
     // Settings
     @State private var position: ModalPosition = .hidden
     private let availablePositions: Set<ModalPosition>
-    private let backgroundColor: UIColor
+    private let color: UIColor
     private let cornerRadius: Double
     private let handleStyle: HandleStyle
-    private let backgroundDarkness: Double
+    private let backgroundShadow: Double
     private let animation: Animation
     private let content: (_ position: Double) -> Content
-        
+    
     // Technical values
     @State private var dragOffset: CGFloat = .zero
     @State private var prevOffset: CGFloat = .zero
@@ -29,21 +29,19 @@ public struct ModalView<Content: View>: View {
     }
     
     public init(
-        position: ModalPosition? = nil,
         availablePositions: ModalPositionSet = .dismissable,
-        backgroundColor: UIColor = .secondarySystemBackground,
+        color: UIColor = .secondarySystemBackground,
         cornerRadius: Double = 20,
         handleStyle: HandleStyle = .medium,
-        backgroundDarkness: Double = 0.5,
+        backgroundShadow: Double = 0,
         animation: SwiftyAnimation = .standard,
         content: @escaping (_ position: Double) -> Content
     ) {
-        self.position = position ?? availablePositions.set().getHighest()
         self.availablePositions = availablePositions.set()
-        self.backgroundColor = backgroundColor
+        self.color = color
         self.cornerRadius = cornerRadius
         self.handleStyle = handleStyle
-        self.backgroundDarkness = backgroundDarkness
+        self.backgroundShadow = backgroundShadow
         self.animation = animation.animation
         self.content = content
     }
@@ -65,12 +63,13 @@ public struct ModalView<Content: View>: View {
             }
             .onEnded { value in
                 withAnimation(animation) {
+                    let sensitivity = max(1, availablePositions.count / 7)
                     prevDragTranslation = .zero
                     dragOffset = .zero
                     
                     var distances = [CGFloat: ModalPosition]()
                     for position in availablePositions {
-                        distances[abs((offset + (value.predictedEndTranslation.height * 0.9)) - position.offset())] = position
+                        distances[abs((offset + (value.predictedEndTranslation.height * CGFloat(sensitivity))) - position.offset())] = position
                     }
                     let nearestPosition = distances[distances.keys.sorted().first ?? 0] ?? .bottom
                     
@@ -89,10 +88,10 @@ public struct ModalView<Content: View>: View {
         ZStack(alignment: .bottom) {
             Color.black
                 .opacity(position == .hidden ?
-                            0 : // If hidden
-                            (availablePositions.isSinglePosition() ? // If not hidden
-                                backgroundDarkness : // If single position
-                                (dragPrecentage * backgroundDarkness))) // If multiple positions
+                         0 : // If hidden
+                         (availablePositions.isSinglePosition() ? // If not hidden
+                          backgroundShadow : // If single position
+                          (dragPrecentage * backgroundShadow))) // If multiple positions
                 .animation(.easeInOut(duration: 0.1), value: dragPrecentage)
                 .edgesIgnoringSafeArea(.all)
                 .onTapGesture {
@@ -121,25 +120,32 @@ public struct ModalView<Content: View>: View {
                     
                     Spacer(minLength: 0)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .frame(maxWidth: UIScreen.width, maxHeight: .infinity)
                 .background(
-                    Color(backgroundColor)
+                    Color(color)
                         .onTapGesture {
                             withAnimation(animation) {
                                 position = availablePositions.getHighest()
                             }
                         }
                 )
-                .cornerRadius(cornerRadius, corners: [.topLeft, .topRight])
+                .cornerRadius(min(offset, cornerRadius),
+                              corners: [.topLeft, .topRight])
                 .offset(y: max(.zero, offset))
                 .gesture(dragGesture)
-                .edgesIgnoringSafeArea(.bottom)
+                .edgesIgnoringSafeArea(.vertical)
             }
         }
         .shadow(color: .black.opacity(1/3), radius: 20)
+        .onAppear {
+            withAnimation(animation) {
+                position = availablePositions.getHighest()
+            }
+        }
     }
 }
 
+@available(iOS 13.0, *)
 struct ModalView_Previews: PreviewProvider {
     static var previews: some View {
         ModalView(availablePositions: .standard) { position in
