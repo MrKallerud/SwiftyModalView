@@ -33,7 +33,7 @@ public struct ModalView<Content: View>: View {
     
     public init(
         availablePositions: ModalPositionSet = .dismissable,
-        material: UIBlurEffect.Style = .regular,
+        material: UIBlurEffect.Style = .systemMaterial,
         cornerRadius: Double = 20,
         handleStyle: HandleStyle = .medium,
         backgroundShadow: Double = 0.3,
@@ -178,8 +178,7 @@ struct ModalView_Previews: PreviewProvider {
                         Text("\(position)").padding()
                     }
                 }
-                //.background(.thinMaterial)
             }
-        }.preferredColorScheme(.dark)
+        }
     }
 }
