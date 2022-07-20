@@ -7,18 +7,18 @@
 import SwiftUI
 
 /// A custom modal view with multiple height presets.
-@available(iOS 13.0, *)
-public struct ModalView<Content: View>: View {
+@available(iOS 15.0, *)
+public struct MaterialModalView<Content: View>: View {
     // Settings
     @State private var position: ModalPosition = .hidden
     private let availablePositions: Set<ModalPosition>
-    private let backgroundColor: UIColor
+    private let material: Material
     private let cornerRadius: Double
     private let handleStyle: HandleStyle
     private let backgroundDarkness: Double
     private let animation: Animation
     private let content: (_ position: Double) -> Content
-        
+    
     // Technical values
     @State private var dragOffset: CGFloat = .zero
     @State private var prevOffset: CGFloat = .zero
@@ -31,21 +31,21 @@ public struct ModalView<Content: View>: View {
     public init(
         position: ModalPosition? = nil,
         availablePositions: ModalPositionSet = .dismissable,
-        backgroundColor: UIColor = .secondarySystemBackground,
+        material: Material = .ultraThinMaterial,
         cornerRadius: Double = 20,
         handleStyle: HandleStyle = .medium,
         backgroundDarkness: Double = 0.5,
         animation: SwiftyAnimation = .standard,
         content: @escaping (_ position: Double) -> Content
     ) {
-        self.position = position ?? availablePositions.set().getHighest()
         self.availablePositions = availablePositions.set()
-        self.backgroundColor = backgroundColor
+        self.material = material
         self.cornerRadius = cornerRadius
         self.handleStyle = handleStyle
         self.backgroundDarkness = backgroundDarkness
         self.animation = animation.animation
         self.content = content
+        self.position = position ?? availablePositions.set().getHighest()
     }
     
     private var dragGesture: some Gesture {
@@ -89,10 +89,10 @@ public struct ModalView<Content: View>: View {
         ZStack(alignment: .bottom) {
             Color.black
                 .opacity(position == .hidden ?
-                            0 : // If hidden
-                            (availablePositions.isSinglePosition() ? // If not hidden
-                                backgroundDarkness : // If single position
-                                (dragPrecentage * backgroundDarkness))) // If multiple positions
+                         0 : // If hidden
+                         (availablePositions.isSinglePosition() ? // If not hidden
+                          backgroundDarkness : // If single position
+                          (dragPrecentage * backgroundDarkness))) // If multiple positions
                 .animation(.easeInOut(duration: 0.1), value: dragPrecentage)
                 .edgesIgnoringSafeArea(.all)
                 .onTapGesture {
@@ -123,7 +123,8 @@ public struct ModalView<Content: View>: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(
-                    Color(backgroundColor)
+                    Color.clear
+                        .background(material)
                         .onTapGesture {
                             withAnimation(animation) {
                                 position = availablePositions.getHighest()
@@ -140,9 +141,10 @@ public struct ModalView<Content: View>: View {
     }
 }
 
-struct ModalView_Previews: PreviewProvider {
+@available(iOS 15.0, *)
+struct MaterialModalView_Previews: PreviewProvider {
     static var previews: some View {
-        ModalView(availablePositions: .standard) { position in
+        MaterialModalView(availablePositions: .standard) { position in
             Text("\(position)").padding()
         }
     }
