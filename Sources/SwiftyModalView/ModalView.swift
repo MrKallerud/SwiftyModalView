@@ -13,7 +13,7 @@ public struct ModalView<Content: View>: View {
     // Settings
     @State private var position: ModalPosition = .hidden
     private let availablePositions: Set<ModalPosition>
-    private let background: UIBlurEffect.Style
+    private let material: UIBlurEffect.Style
     private let cornerRadius: Double
     private let handleStyle: HandleStyle
     private let backgroundShadow: Double
@@ -33,7 +33,7 @@ public struct ModalView<Content: View>: View {
     
     public init(
         availablePositions: ModalPositionSet = .dismissable,
-        background: UIBlurEffect.Style = .regular,
+        material: UIBlurEffect.Style = .regular,
         cornerRadius: Double = 20,
         handleStyle: HandleStyle = .medium,
         backgroundShadow: Double = 0.3,
@@ -43,7 +43,7 @@ public struct ModalView<Content: View>: View {
         content: @escaping (_ position: Double) -> Content
     ) {
         self.availablePositions = availablePositions.set()
-        self.background = background
+        self.material = material
         self.cornerRadius = cornerRadius
         self.handleStyle = handleStyle
         self.backgroundShadow = backgroundShadow
@@ -156,7 +156,7 @@ public struct ModalView<Content: View>: View {
                 position = availablePositions.getHighest()
             }
         }
-        .blurEffectStyle(background)
+        .blurEffectStyle(material)
     }
 }
 
