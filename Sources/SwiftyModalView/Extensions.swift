@@ -59,6 +59,10 @@ public enum ModalPosition: Comparable {
     /// Positions the modal below the screen, out of sight.
     case hidden
     
+    /// Positions the modal at the position of the argument.
+    /// Pass a value between 0.0 and 1.0.
+    case custom(position: CGFloat)
+    
     /// Returns the height value for the position.
     func offset() -> CGFloat {
         switch self {
@@ -70,24 +74,13 @@ public enum ModalPosition: Comparable {
             return UIScreen.height - 128
         case .hidden:
             return UIScreen.height
-        }
-    }
-    
-    private var order: Int {
-        switch self {
-        case .hidden:
-            return 0
-        case .top:
-            return 1
-        case .middle:
-            return 2
-        case .bottom:
-            return 3
+        case .custom(let position):
+            return UIScreen.height * position
         }
     }
     
     public static func <(lhs: ModalPosition, rhs: ModalPosition) -> Bool {
-        return lhs.order < rhs.order
+        return lhs.offset() < rhs.offset()
     }
 }
 
