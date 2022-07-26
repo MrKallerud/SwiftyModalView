@@ -81,7 +81,7 @@ public enum ModalPosition: Comparable, Hashable {
         case .middle:
             return UIScreen.height / 2
         case .bottom:
-            return UIScreen.height - (UIApplication.bottomInset ?? 32) - 42
+            return UIScreen.height - (UIApplication.bottomInset ?? 32) - (32 + 6)
         case .hidden:
             return UIScreen.height
         case .custom(let position):

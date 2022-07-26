@@ -39,7 +39,7 @@ public struct ModalView<Content: View>: View {
         backgroundShadow: Double = 0.3,
         animation: SwiftyAnimation = .standard,
         resizable: Bool = false,
-        minSize: CGFloat = 0.3,
+        minSize: ModalPosition = .middle,
         content: @escaping (_ position: Double) -> Content
     ) {
         self.availablePositions = availablePositions.set()
@@ -49,7 +49,7 @@ public struct ModalView<Content: View>: View {
         self.backgroundShadow = backgroundShadow
         self.animation = animation.animation
         self.resizable = resizable
-        self.minSize = minSize
+        self.minSize = minSize.offset()
         self.content = content
     }
     
@@ -60,7 +60,7 @@ public struct ModalView<Content: View>: View {
                     let dragAmount = value.translation.height - prevDragTranslation.height
                     
                     if offset > availablePositions.getLowest().offset() || offset < availablePositions.getHighest().offset() {
-                        dragOffset += dragAmount / 5
+                        dragOffset += dragAmount / 10
                     } else {
                         dragOffset += dragAmount
                     }
@@ -116,9 +116,9 @@ public struct ModalView<Content: View>: View {
                     
                     content(dragPrecentage)
                         .padding(.top, min(UIApplication.topInset ?? 42, max(22, (UIApplication.topInset ?? 42) - offset)))
-                        .padding(.bottom, UIApplication.bottomInset ?? 42)
                         .padding(.bottom, resizable ?
-                                 max(.zero, min(offset, UIScreen.height * (1 - minSize))) : .zero)
+                                 max(.zero, min(offset, minSize)) : (UIApplication.bottomInset ?? 42))
+                        .padding(.bottom, availablePositions.getHighest().offset())
                         .frame(minHeight: .zero)
                     
                     Spacer(minLength: .zero)
@@ -170,15 +170,27 @@ struct ModalView_Previews: PreviewProvider {
             } placeholder: {
                 ProgressView()
             }
-            ModalView(availablePositions: .custom([.bottom, .middle, .top, .fill]), resizable: true) { position in
+            
+            ModalView(availablePositions: .low(false),
+                      resizable: false) { position in
                 ZStack {
-                    Button {
-                        //
-                    } label: {
-                        Text("\(position)").padding()
+                    RoundedRectangle(cornerRadius: 36)
+                        .strokeBorder(style: StrokeStyle(lineWidth: 4))
+                        .foregroundColor(.primary)
+                        .padding()
+                    VStack {
+                        Text("SwiftyModalView")
+                            .font(.largeTitle)
+                        Text("MATERIAL")
+                            .font(.title3)
+                            .fontWeight(.bold)
                     }
                 }
+                .opacity(0.5)
             }
+            
+            Rectangle()
+                .stroke()
         }
     }
 }
