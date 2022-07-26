@@ -11,7 +11,7 @@ import SwiftUIVisualEffects
 @available(iOS 13.0, *)
 public struct ModalView<Content: View>: View {
     // Settings
-    @State private var position: ModalPosition = .hidden
+    @Binding private var position: ModalPosition
     private let availablePositions: Set<ModalPosition>
     private let material: UIBlurEffect.Style
     private let cornerRadius: Double
@@ -32,6 +32,7 @@ public struct ModalView<Content: View>: View {
     }
     
     public init(
+        position: Binding<ModalPosition>,
         availablePositions: ModalPositionSet = .dismissable,
         material: UIBlurEffect.Style = .systemMaterial,
         cornerRadius: Double = 20,
@@ -42,6 +43,7 @@ public struct ModalView<Content: View>: View {
         minSize: ModalPosition = .middle,
         content: @escaping (_ position: Double) -> Content
     ) {
+        self._position = position
         self.availablePositions = availablePositions.set()
         self.material = material
         self.cornerRadius = cornerRadius
@@ -171,8 +173,10 @@ struct ModalView_Previews: PreviewProvider {
                 ProgressView()
             }
             
-            ModalView(availablePositions: .low(false),
-                      resizable: false) { position in
+            ModalView(
+                position: .constant(.middle),
+                availablePositions: .low(false),
+                resizable: false) { position in
                 ZStack {
                     RoundedRectangle(cornerRadius: 36)
                         .strokeBorder(style: StrokeStyle(lineWidth: 4))
